@@ -16,6 +16,7 @@ $res = $db->query( 'SELECT * FROM messages ORDER BY ROWID DESC' );
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <style>
         body {
             font-family: "Helvetica Neue", sans-serif;
