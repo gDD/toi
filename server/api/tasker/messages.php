@@ -4,6 +4,7 @@
 
 define( 'TOI_ROOT', dirname( dirname( dirname( __FILE__ ) ) ) );
 require( TOI_ROOT . '/lib/database.php' );
+require( TOI_ROOT . '/lib/config.php' );
 
 if ( ( $db = init_db( TOI_SQLITE_FILE ) ) === false ) {
     die( 'Database initialization...failed.');
@@ -42,6 +43,27 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     file_put_contents( $log, "\n", FILE_APPEND );
     file_put_contents( $log, var_export( $processed, true ), FILE_APPEND );
     file_put_contents( $log, "\n", FILE_APPEND );
+
+    $url = 'https://api.pushover.net/1/messages.json';
+    $data = array(
+        'token' => PUSHOVER_TOKEN,
+        'user' => PUSHOVER_USER_KEY,
+        'title' => 'New SMS Message!',
+        'message' => 'You\'ve got a new SMS message.',
+        'url_title' => 'View',
+        'url' => TOI_FRONT_END_URL,
+    );
+
+    // use key 'http' even if you send the request to https://...
+    $options = array(
+        'http' => array(
+            'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method'  => 'POST',
+            'content' => http_build_query($data),
+        ),
+    );
+    $context  = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
 } else {
     exit();
     # Exit with this and wait for the Tasker app's timer to get this SMS draft
