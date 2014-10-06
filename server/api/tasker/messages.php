@@ -1,6 +1,6 @@
 <?php
 
-// @todo: Tasker cannot handle '|' char correctly, translates to "++"
+// @todo: Tasker cannot handle '|' char correctly, translates to " "
 
 define( 'TOI_ROOT', dirname( dirname( dirname( __FILE__ ) ) ) );
 require( TOI_ROOT . '/lib/database.php' );
@@ -19,8 +19,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 
     $sender_no = $_POST['from_no'];
     $receiver_no = $_POST['to_no'];
-    // Tasker cannot correctly handle SMS body (%SMSRB) with \n, so we encode it by JavaScript equivalent of encodeURIComponent
-    $content = rawurldecode( $_POST['content' ] );
+    // Tasker cannot correctly handle SMS body (%SMSRB) with \n, so we encode it by JavaScript equivalent of encodeURI?
+    $content = urldecode( $_POST['content' ] );
     // @todo make it configurable
     $timezone = new DateTimeZone( 'Asia/Chongqing' );
     $datetime = DateTime::createFromFormat( 'm-d-Y H.i', "{$_POST['date']} {$_POST['time']}", $timezone );
@@ -65,7 +65,25 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $context  = stream_context_create($options);
     $result = file_get_contents($url, false, $context);
 } else {
-    exit();
     # Exit with this and wait for the Tasker app's timer to get this SMS draft
     exit( '+8618600186000|Mengdi Gao brings you this awesome stuff!' );
+
+    // Pop sending pending SMSes from SQLite
+    // Still work in progress
+    $sql = 'SELECT * FROM messages WHERE status = :status ORDER BY ROWID ASC LIMIT 1';
+    $stmt = $db->prepare( $sql );
+    $stmt->bindValue( ':status', STATUS_QUEUED, SQLITE3_INTEGER );
+    $result = $stmt->execute();
+
+    if (!( $row = $result->fetchArray() )) {
+        exit();
+    }
+
+    echo( $row['receiver_no'] . '|' . $row['content'] );
+
+    $sql = 'UPDATE messages SET status = :status WHERE ROWID = :message_id';
+
+    $stmt->bindValue( ':status', STATUS_SENDING, SQLITE3_INTEGER );
+    $stmt->bindValue( ':message_id', $row['ROWID'], SQLITE3_INTEGER );
+    $stmt->execute();
 }
