@@ -3,8 +3,6 @@
 define( 'TOI_ROOT', dirname( dirname( __FILE__ ) ) );
 require( TOI_ROOT . '/lib/database.php' );
 
-date_default_timezone_set( 'Asia/Chongqing' );
-
 if ( ( $db = init_db( TOI_SQLITE_FILE ) ) === false ) {
     die( 'Database initialization...failed.');
 }
@@ -39,13 +37,13 @@ $res = $db->query( 'SELECT * FROM messages ORDER BY ROWID DESC' );
             margin-left: 28px;
             border-bottom: 1px solid #c8c7cc;
         }
-        .message a {
+        .message > div {
             display: block;;
             margin-left: -28px;
             padding: 15px 14px 15px 28px;
             text-decoration: none;
         }
-        .message a:hover {
+        .message > div:hover {
             text-decoration: none;
         }
         .message p {
@@ -54,7 +52,7 @@ $res = $db->query( 'SELECT * FROM messages ORDER BY ROWID DESC' );
             color: #8e8e93;
             font-size: 15px;
         }
-        .message .sender {
+        .message .caller-id {
             float: left;
             line-height: 20px;
             margin: 0;
@@ -75,18 +73,37 @@ $res = $db->query( 'SELECT * FROM messages ORDER BY ROWID DESC' );
 </div>
 <ul class="messages">
     <?php while ( $row = $res->fetchArray( SQLITE3_ASSOC ) ): ?>
-        <li class="message">
-            <a href="###">
-                <h4 class="sender"><?php echo htmlspecialchars( $row['sender_no'] ); ?></h4>
-                <time datetime="<?php echo htmlspecialchars( $row['date'] ); ?>" class="date">
-                    <?php
-                    $date = new DateTime( $row['date'] );
-                    echo htmlspecialchars( $date->format( 'Y-m-d' ) );
-                    ?>
+        <li class="message" data-encrypted="<?php echo htmlspecialchars($row['encrypted']); ?>">
+            <div class="place-holder">
+                <h4 class="caller-id">SMS_CALLER_ID</h4>
+                <time datetime="DATETIME" class="date">
+                    SMS_DATETIME
                 </time>
-                <p class="content"><?php echo nl2br( htmlspecialchars( $row['content'] ) ); ?></p>
-            </a>
+                <p class="content">SMS_CONTENT</p>
+            </div>
         </li>
     <?php endwhile; ?>
 </ul>
+<script src="assets/js/jquery-2.1.1.min.js"></script>
+<script src="assets/js/gibberish-aes-1.0.0.min.js"></script>
+<script>
+    (function() {
+        var key = localStorage.getItem("key");
+
+        if (key === null) {
+            return;
+        }
+
+        $(function() {
+            $(".message").each(function() {
+                var $message = $(this);
+                var data = JSON.parse(GibberishAES.dec($message.data("encrypted"), key));
+
+                $message.find(".caller-id").text(data.caller_id);
+                $message.find(".date").text(data.date_time);
+                $message.find(".content").text(data.content);
+            });
+        });
+    })();
+</script>
 </body>
