@@ -28,7 +28,7 @@ function init_db( $filename, $scratch = false ) {
     }
 
     if ( $scratch ) {
-        // Actually every AES encryption is unique. UNIQUE here to avoid retry requests.
+        // Actually every OpenSSL AES encryption is unique. UNIQUE here to avoid retry requests.
         $db->exec( 'CREATE TABLE messages (encrypted TEXT UNIQUE, status INTEGER)' );
     }
 

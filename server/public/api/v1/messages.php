@@ -1,7 +1,5 @@
 <?php
 
-// @todo: Tasker cannot handle '|' char correctly, translates to " "
-
 define( 'TOI_ROOT', dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) );
 require( TOI_ROOT . '/lib/database.php' );
 require( TOI_ROOT . '/lib/config.php' );
