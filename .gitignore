@@ -1,1 +1,3 @@
 /server/lib/config.php
+/server/data/*.sqlite
+/server/data/*.log

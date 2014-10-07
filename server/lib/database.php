@@ -28,7 +28,8 @@ function init_db( $filename, $scratch = false ) {
     }
 
     if ( $scratch ) {
-        $db->exec( 'CREATE TABLE messages (sender_no TEXT, receiver_no TEXT, date TEXT, content TEXT, status INTEGER)' );
+        // Actually every AES encryption is unique. UNIQUE here to avoid retry requests.
+        $db->exec( 'CREATE TABLE messages (encrypted TEXT UNIQUE, status INTEGER)' );
     }
 
     return $db;
