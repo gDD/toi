@@ -28,6 +28,10 @@ $res = $db->query( 'SELECT * FROM messages ORDER BY ROWID DESC' );
             margin: 0;
             text-align: center;
         }
+        .option {
+            float: right;
+            margin-right: 14px;
+        }
         .messages {
             list-style: none;
             padding: 0;
@@ -69,7 +73,9 @@ $res = $db->query( 'SELECT * FROM messages ORDER BY ROWID DESC' );
 </head>
 <body>
 <div class="nav-bar">
+    <button class="option option--password">🔑</button>
     <h3 class="nav-title">Messages</h3>
+
 </div>
 <ul class="messages">
     <?php while ( $row = $res->fetchArray( SQLITE3_ASSOC ) ): ?>
@@ -88,21 +94,44 @@ $res = $db->query( 'SELECT * FROM messages ORDER BY ROWID DESC' );
 <script src="assets/js/gibberish-aes-1.0.0.min.js"></script>
 <script>
     (function() {
-        var key = localStorage.getItem("key");
-
-        if (key === null) {
-            return;
-        }
+        var password = localStorage.getItem("password") || "";
 
         $(function() {
-            $(".message").each(function() {
-                var $message = $(this);
-                var data = JSON.parse(GibberishAES.dec($message.data("encrypted"), key));
-
-                $message.find(".caller-id").text(data.caller_id);
-                $message.find(".date").text(data.date_time);
-                $message.find(".content").text(data.content);
+            // Save new password
+            $(".option--password").on("click", function() {
+                var new_password = window.prompt("Decryption password: (will reload current page after submit)", password);
+                if (new_password === null) {
+                    return;
+                }
+                // OK with empty content, ask permission to clear password
+                if (new_password === "") {
+                    var clear = confirm("Do you want to clear the password? (will reload current page after clear)");
+                    if (clear) {
+                        localStorage.removeItem("password");
+                        password = null;
+                        location.reload();
+                    }
+                    return;
+                }
+                // OK with new password, set it up
+                if (new_password !== null) {
+                    localStorage.setItem("password", new_password);
+                    password = localStorage.getItem("password");
+                    location.reload();
+                }
             });
+
+            if (password) {
+                // Decrypt and display messages
+                $(".message").each(function() {
+                    var $message = $(this);
+                    var data = JSON.parse(GibberishAES.dec($message.data("encrypted"), password));
+
+                    $message.find(".caller-id").text(data.caller_id);
+                    $message.find(".date").text(data.date_time);
+                    $message.find(".content").text(data.content);
+                });
+            }
         });
     })();
 </script>
