@@ -2,14 +2,11 @@
 
 -- requires base64.lua from https://github.com/toastdriven/lua-base64
 -- requires JSON.lua from http://regex.info/blog/lua/json
+require("base64")
+JSON = (loadfile "JSON.lua")()
 
 password = "super-hero-password"
 messages_url = "http://your.domain.tld/api/v1/messages.php"
-
-package.path = package.path .. ";/path/to/base64.lua"
-
-require("base64")
-JSON = (loadfile "JSON.lua")()
 
 local my_id          = arg[1]
 local caller_id      = arg[2]
